@@ -1,0 +1,147 @@
+'use client'
+
+import { useState } from 'react'
+import { X, Settings } from 'lucide-react'
+
+interface ShortAnswerElementProps {
+  question: string
+  placeholder: string
+  required: boolean
+  maxLength: number
+  onChange: (updates: {
+    question?: string
+    placeholder?: string
+    required?: boolean
+    maxLength?: number
+  }) => void
+  onDelete: () => void
+  isSelected: boolean
+  onSelect: () => void
+}
+
+export function ShortAnswerElement({
+  question,
+  placeholder,
+  required,
+  maxLength,
+  onChange,
+  onDelete,
+  isSelected,
+  onSelect,
+}: ShortAnswerElementProps) {
+  const [showSettings, setShowSettings] = useState(false)
+  const [inputValue, setInputValue] = useState('')
+
+  return (
+    <div
+      className={`relative group rounded-lg transition-all ${
+        isSelected ? 'ring-2 ring-primary' : ''
+      }`}
+      onClick={onSelect}
+    >
+      <div className="p-4 bg-muted/30 rounded-lg border border-border">
+        {/* Question */}
+        <div className="mb-3">
+          <input
+            type="text"
+            value={question}
+            onChange={(e) => onChange({ question: e.target.value })}
+            className="w-full text-lg font-medium bg-transparent border-none focus:outline-none focus:ring-2 focus:ring-primary rounded px-2 py-1"
+            placeholder="Your question here"
+            onClick={(e) => e.stopPropagation()}
+          />
+          {required && (
+            <span className="text-destructive text-sm ml-2">*</span>
+          )}
+        </div>
+
+        {/* Text Input */}
+        <div className="relative">
+          <textarea
+            value={inputValue}
+            onChange={(e) => {
+              if (e.target.value.length <= maxLength) {
+                setInputValue(e.target.value)
+              }
+            }}
+            placeholder={placeholder}
+            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+            rows={3}
+            onClick={(e) => e.stopPropagation()}
+          />
+          <div className="absolute bottom-2 right-2 text-xs text-muted-foreground">
+            {inputValue.length} / {maxLength}
+          </div>
+        </div>
+      </div>
+
+      {/* Settings Panel */}
+      {isSelected && showSettings && (
+        <div className="mt-2 p-3 bg-background border border-border rounded-lg space-y-3">
+          <div>
+            <label className="block text-sm font-medium mb-2">Placeholder text</label>
+            <input
+              type="text"
+              value={placeholder}
+              onChange={(e) => onChange({ placeholder: e.target.value })}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-sm"
+              onClick={(e) => e.stopPropagation()}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-2">Max length: {maxLength}</label>
+            <input
+              type="range"
+              min="50"
+              max="2000"
+              step="50"
+              value={maxLength}
+              onChange={(e) => onChange({ maxLength: Number(e.target.value) })}
+              className="w-full"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <div className="flex justify-between text-xs text-muted-foreground mt-1">
+              <span>50</span>
+              <span>2000</span>
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={required}
+              onChange={(e) => onChange({ required: e.target.checked })}
+              className="rounded"
+            />
+            Required
+          </label>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      {isSelected && (
+        <div className="absolute -top-2 -right-2 flex gap-1">
+          <button
+            className="p-1 bg-muted text-muted-foreground rounded-full hover:text-foreground transition-colors z-10"
+            onClick={(e) => {
+              e.stopPropagation()
+              setShowSettings(!showSettings)
+            }}
+            type="button"
+          >
+            <Settings className="w-3 h-3" />
+          </button>
+          <button
+            className="p-1 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-colors z-10"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            type="button"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}

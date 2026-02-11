@@ -1,0 +1,152 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { db } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth'
+
+interface Props {
+  params: Promise<{ displayId: string }>
+}
+
+export async function GET(request: NextRequest, { params }: Props) {
+  try {
+    const { displayId } = await params
+
+    // Verify authentication
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '')
+
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await verifyAuth(token)
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+
+    // Get display and verify ownership
+    const display = await db.display.findUnique({
+      where: { id: displayId },
+      select: { id: true, userId: true, title: true, views: true },
+    })
+
+    if (!display) {
+      return NextResponse.json({ error: 'Display not found' }, { status: 404 })
+    }
+
+    if (display.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Get query params for date range
+    const url = new URL(request.url)
+    const days = parseInt(url.searchParams.get('days') || '30')
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+
+    // Get analytics data
+    const events = await db.analyticsEvent.findMany({
+      where: {
+        displayId,
+        createdAt: { gte: startDate },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    // Calculate summary stats
+    const totalViews = events.filter((e) => e.eventType === 'view').length
+    const uniqueSessions = new Set(events.map((e) => e.sessionId).filter(Boolean)).size
+
+    // Device breakdown
+    const deviceBreakdown = events.reduce(
+      (acc, e) => {
+        if (e.eventType === 'view' && e.deviceType) {
+          acc[e.deviceType] = (acc[e.deviceType] || 0) + 1
+        }
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    // Browser breakdown
+    const browserBreakdown = events.reduce(
+      (acc, e) => {
+        if (e.eventType === 'view' && e.browser) {
+          acc[e.browser] = (acc[e.browser] || 0) + 1
+        }
+        return acc
+      },
+      {} as Record<string, number>
+    )
+
+    // Views by day
+    const viewsByDay = events
+      .filter((e) => e.eventType === 'view')
+      .reduce(
+        (acc, e) => {
+          const day = e.createdAt.toISOString().split('T')[0]
+          acc[day] = (acc[day] || 0) + 1
+          return acc
+        },
+        {} as Record<string, number>
+      )
+
+    // Top referrers
+    const referrerCounts = events
+      .filter((e) => e.eventType === 'view' && e.referrer)
+      .reduce(
+        (acc, e) => {
+          try {
+            const url = new URL(e.referrer!)
+            const domain = url.hostname
+            acc[domain] = (acc[domain] || 0) + 1
+          } catch {
+            acc['direct'] = (acc['direct'] || 0) + 1
+          }
+          return acc
+        },
+        {} as Record<string, number>
+      )
+
+    const topReferrers = Object.entries(referrerCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([domain, count]) => ({ domain, count }))
+
+    // Recent events (last 50)
+    const recentEvents = events.slice(0, 50).map((e) => ({
+      id: e.id,
+      eventType: e.eventType,
+      deviceType: e.deviceType,
+      browser: e.browser,
+      referrer: e.referrer,
+      createdAt: e.createdAt,
+    }))
+
+    return NextResponse.json({
+      display: {
+        id: display.id,
+        title: display.title,
+        totalViews: display.views,
+      },
+      period: {
+        days,
+        start: startDate.toISOString(),
+        end: new Date().toISOString(),
+      },
+      summary: {
+        views: totalViews,
+        uniqueVisitors: uniqueSessions,
+      },
+      breakdown: {
+        devices: deviceBreakdown,
+        browsers: browserBreakdown,
+        referrers: topReferrers,
+      },
+      viewsByDay,
+      recentEvents,
+    })
+  } catch (error) {
+    console.error('Analytics fetch error:', error)
+    return NextResponse.json({ error: 'Failed to fetch analytics' }, { status: 500 })
+  }
+}

@@ -1,0 +1,157 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  username  String    @unique
+  name      String?
+  password  String
+  avatar    String?
+  bio       String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  displays  Display[]
+}
+
+model Display {
+  id          String   @id @default(cuid())
+  slug        String
+  title       String
+  description String?
+  published   Boolean  @default(false)
+  views       Int      @default(0)
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Column-based layout structure stored as JSON
+  // Structure: [{ id, layout, columns: [{ id, elements: [...] }] }]
+  sections    Json     @default("[]")
+
+  // Background configuration stored as JSON
+  // Structure: { type, solidColor, gradient, patternId, imageUrl, imageMode, scrollBehavior, opacity }
+  background  Json?
+
+  // Header card configuration (profile/resume/catalog hero section)
+  headerCard  Json?
+
+  // Tab navigation (each tab has its own Section[] canvas)
+  tabs        Json?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Analytics events
+  analytics   AnalyticsEvent[]
+
+  // Form responses
+  formResponses FormResponse[]
+
+  // Comments
+  comments    Comment[]
+
+  // Share links
+  shareLinks  ShareLink[]
+
+  @@unique([userId, slug])
+  @@index([userId])
+  @@index([published])
+}
+
+model AnalyticsEvent {
+  id          String   @id @default(cuid())
+  displayId   String
+  display     Display  @relation(fields: [displayId], references: [id], onDelete: Cascade)
+
+  // Event type: 'view', 'click', 'scroll', etc.
+  eventType   String   @default("view")
+
+  // Session tracking (anonymous visitor identification)
+  sessionId   String?
+
+  // Traffic source
+  referrer    String?
+  utmSource   String?
+  utmMedium   String?
+  utmCampaign String?
+
+  // Device info (parsed from user agent)
+  userAgent   String?
+  deviceType  String?  // 'desktop', 'mobile', 'tablet'
+  browser     String?
+  os          String?
+
+  // Location (can be populated via IP geolocation service)
+  country     String?
+  city        String?
+
+  // Additional event data (for clicks, etc.)
+  metadata    Json?
+
+  createdAt   DateTime @default(now())
+
+  @@index([displayId])
+  @@index([displayId, createdAt])
+  @@index([sessionId])
+}
+
+model FormResponse {
+  id          String   @id @default(cuid())
+  displayId   String
+  display     Display  @relation(fields: [displayId], references: [id], onDelete: Cascade)
+
+  // Session tracking (links responses from same visitor)
+  sessionId   String?
+
+  // All form responses stored as JSON
+  // Structure: { [elementId]: { type, question, answer } }
+  responses   Json
+
+  // Submission metadata
+  submittedAt DateTime @default(now())
+  userAgent   String?
+  ipHash      String?  // Hashed IP for spam prevention, not tracking
+
+  @@index([displayId])
+  @@index([displayId, submittedAt])
+}
+
+model Comment {
+  id          String   @id @default(cuid())
+  displayId   String
+  display     Display  @relation(fields: [displayId], references: [id], onDelete: Cascade)
+
+  authorName  String
+  authorEmail String?
+  content     String
+  avatarUrl   String?
+
+  approved    Boolean  @default(true)  // For moderation if owner wants
+  createdAt   DateTime @default(now())
+
+  @@index([displayId])
+  @@index([displayId, createdAt])
+}
+
+model ShareLink {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  displayId   String
+  display     Display  @relation(fields: [displayId], references: [id], onDelete: Cascade)
+
+  label       String?
+  isActive    Boolean  @default(true)
+  clicks      Int      @default(0)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([displayId])
+  @@index([code])
+}

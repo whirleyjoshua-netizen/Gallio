@@ -31,7 +31,20 @@
       "Bash(pnpm add:*)",
       "Bash(npx prisma generate:*)",
       "Bash(powershell.exe:*)",
-      "Bash(node -e:*)"
+      "Bash(node -e:*)",
+      "Bash(pnpm prisma migrate dev:*)",
+      "Bash(pnpm prisma generate:*)",
+      "Bash(cmd.exe /c \"taskkill /f /im node.exe\")",
+      "Bash(cmd.exe /c \"netstat -ano | findstr :3000 | findstr LISTEN\")",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git remote add:*)",
+      "Bash(git remote set-url:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(pnpm prisma db push:*)",
+      "Bash(pnpm exec next lint:*)",
+      "Bash(pnpm next build:*)"
     ]
   }
 }

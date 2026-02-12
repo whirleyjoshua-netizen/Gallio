@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vouch Card for Gallio</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: transparent; font-family: 'Outfit', sans-serif; color: #f0ebe3; }
+
+    .card {
+      background: #12110f;
+      border-radius: 16px;
+      border: 1px solid rgba(201,168,124,0.15);
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* Accent bar */
+    .accent-bar {
+      height: 3px;
+      background: linear-gradient(90deg, #c9a87c, #7a9e8e, #8e9ab5);
+    }
+
+    /* Header */
+    .header {
+      padding: 20px 24px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+    }
+
+    .avatar {
+      width: 64px;
+      height: 64px;
+      min-width: 64px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #f0ebe3;
+      letter-spacing: 1px;
+      border: 2px solid rgba(240,235,227,0.08);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .info { flex: 1; min-width: 0; }
+    .name {
+      font-family: 'Playfair Display', serif;
+      font-size: 20px;
+      font-weight: 700;
+      color: #f0ebe3;
+      letter-spacing: -0.2px;
+      line-height: 1.2;
+    }
+    .subtitle {
+      font-size: 13px;
+      color: rgba(240,235,227,0.5);
+      margin-top: 2px;
+    }
+    .verified-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      margin-top: 6px;
+      padding: 3px 10px;
+      background: rgba(201,168,124,0.12);
+      border: 1px solid rgba(201,168,124,0.2);
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 500;
+      color: #c9a87c;
+    }
+    .verified-badge svg { width: 12px; height: 12px; }
+
+    .vouch-logo {
+      width: 20px;
+      height: 20px;
+      opacity: 0.4;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Reference breakdown */
+    .ref-breakdown {
+      padding: 16px 24px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .ref-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      border: 1px solid;
+    }
+
+    .ref-pill .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* References list */
+    .references {
+      padding: 0 24px 16px;
+    }
+
+    .ref-label {
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: rgba(240,235,227,0.3);
+      margin-bottom: 10px;
+    }
+
+    .ref-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(240,235,227,0.05);
+    }
+    .ref-item:last-child { border-bottom: none; }
+
+    .ref-avatar {
+      width: 32px;
+      height: 32px;
+      min-width: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Playfair Display', serif;
+      font-size: 11px;
+      font-weight: 600;
+      color: #f0ebe3;
+    }
+
+    .ref-info { flex: 1; min-width: 0; }
+    .ref-name { font-size: 13px; font-weight: 500; }
+    .ref-detail { font-size: 11px; color: rgba(240,235,227,0.4); }
+
+    .ref-type {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+
+    /* Achievements */
+    .achievements {
+      padding: 0 24px 16px;
+    }
+
+    .ach-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ach-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 500;
+      background: rgba(240,235,227,0.04);
+      border: 1px solid rgba(240,235,227,0.06);
+      color: rgba(240,235,227,0.7);
+    }
+
+    .ach-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+    }
+
+    /* Standout quote */
+    .standout {
+      margin: 0 24px 16px;
+      padding: 12px 16px;
+      background: rgba(201,168,124,0.06);
+      border-left: 2px solid #c9a87c;
+      border-radius: 0 8px 8px 0;
+      font-size: 12px;
+      color: rgba(240,235,227,0.6);
+      font-style: italic;
+      line-height: 1.5;
+    }
+    .standout-attr {
+      font-style: normal;
+      font-size: 11px;
+      color: rgba(201,168,124,0.6);
+      margin-top: 6px;
+    }
+
+    /* Performance */
+    .perf {
+      padding: 0 24px 20px;
+    }
+
+    .perf-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 12px;
+      background: rgba(240,235,227,0.03);
+      border-radius: 8px;
+    }
+
+    .perf-period {
+      font-size: 11px;
+      color: rgba(240,235,227,0.4);
+    }
+
+    .perf-rating {
+      font-family: 'Playfair Display', serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: #c9a87c;
+    }
+
+    .perf-merit {
+      font-size: 11px;
+      color: #7a9e8e;
+      font-weight: 500;
+    }
+
+    /* Footer */
+    .footer {
+      padding: 10px 24px;
+      background: rgba(240,235,227,0.02);
+      border-top: 1px solid rgba(240,235,227,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .footer-text {
+      font-size: 10px;
+      color: rgba(240,235,227,0.25);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .footer-text svg { width: 10px; height: 10px; opacity: 0.5; }
+
+    .vli-hash {
+      font-family: 'Courier New', monospace;
+      font-size: 9px;
+      color: rgba(122,158,142,0.5);
+    }
+
+    /* ── Compact style ── */
+    .card.compact .header { padding: 14px 16px 14px; }
+    .card.compact .avatar { width: 48px; height: 48px; min-width: 48px; font-size: 16px; }
+    .card.compact .name { font-size: 16px; }
+    .card.compact .ref-breakdown,
+    .card.compact .references,
+    .card.compact .achievements,
+    .card.compact .standout,
+    .card.compact .perf { display: none; }
+    .card.compact .footer { padding: 8px 16px; }
+
+    /* ── Detailed style: show everything ── */
+    /* Default hides perf, detailed shows it */
+    .card:not(.detailed) .perf { display: none; }
+
+    /* Loading state */
+    .loading {
+      padding: 40px;
+      text-align: center;
+      color: rgba(240,235,227,0.3);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <div id="root"><div class="loading">Loading Vouch card...</div></div>
+
+  <script src="/sdk/gallio-card-sdk.js"></script>
+  <script>
+    // ── Color helpers ──
+    var avatarColors = ['#2d3436','#3d3024','#1e3a4f','#3b2d4a','#2d3b2d','#4a3028','#283848','#3a2d3d','#2d4a3b','#48382d','#2d2d3b','#3d2d28'];
+    var typeColors = { manager: '#c9a87c', peer: '#7a9e8e', report: '#8e9ab5', client: '#b58e7a', vendor: '#9e8eb5' };
+    var typeLabels = { manager: 'Manager', peer: 'Peer', report: 'Report', client: 'Client', vendor: 'Vendor' };
+    var achColors = {
+      delivery: '#3b82f6', quality: '#f59e0b', speed: '#ef4444', impact: '#10b981',
+      leadership: '#8b5cf6', mentorship: '#06b6d4', innovation: '#f97316', reliability: '#64748b',
+      collaboration: '#ec4899', security: '#14b8a6', compliance: '#6366f1', growth: '#22c55e'
+    };
+
+    function getColor(s) { return s ? avatarColors[s.charCodeAt(0) % avatarColors.length] : avatarColors[0]; }
+    function getInitials(name) { return name ? name.split(' ').map(function(n) { return n[0]; }).join('').toUpperCase().slice(0, 2) : '?'; }
+    function esc(str) { var d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML; }
+
+    function render(data, style) {
+      var name = data.name || 'Your Name';
+      var title = data.title || '';
+      var company = data.company || '';
+      var avatarUrl = data.avatarUrl || '';
+      var references = data.references || [];
+      var achievements = data.achievements || [];
+      var verified = data.verified || references.length;
+      var standout = data.standout || '';
+      var standoutFrom = data.standoutFrom || '';
+      var latestRating = data.latestRating || '';
+      var latestPeriod = data.latestPeriod || '';
+      var latestMerit = data.latestMerit || '';
+      var isCompact = style === 'compact';
+      var isDetailed = style === 'detailed';
+      var initials = getInitials(name);
+
+      // Count relationship types
+      var typeCounts = {};
+      references.forEach(function(r) {
+        var t = r.relationshipType || 'peer';
+        typeCounts[t] = (typeCounts[t] || 0) + 1;
+      });
+
+      // Build avatar HTML
+      var avatarInner = avatarUrl
+        ? '<img src="' + esc(avatarUrl) + '" alt="">'
+        : esc(initials);
+
+      var html = '';
+      html += '<div class="card ' + (isCompact ? 'compact' : isDetailed ? 'detailed' : '') + '">';
+      html += '<div class="accent-bar"></div>';
+
+      // Header
+      html += '<div class="header">';
+      html += '<div class="avatar" style="background:' + (avatarUrl ? 'transparent' : 'linear-gradient(135deg,' + getColor(initials) + ',' + getColor(initials) + 'dd)') + '">' + avatarInner + '</div>';
+      html += '<div class="info">';
+      html += '<div class="name">' + esc(name) + '</div>';
+      html += '<div class="subtitle">' + esc(title) + (company ? ' · ' + esc(company) : '') + '</div>';
+      if (verified > 0) {
+        html += '<div class="verified-badge">';
+        html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 12l2 2 4-4"/><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+        html += esc(String(verified)) + ' verified reference' + (verified !== 1 ? 's' : '');
+        html += '</div>';
+      }
+      html += '</div>';
+      // Vouch shield icon
+      html += '<svg class="vouch-logo" viewBox="0 0 24 24" fill="none" stroke="#c9a87c" stroke-width="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke="#7a9e8e" stroke-width="2"/></svg>';
+      html += '</div>';
+
+      // Reference breakdown pills
+      if (!isCompact && Object.keys(typeCounts).length > 0) {
+        html += '<div class="ref-breakdown">';
+        for (var type in typeCounts) {
+          var c = typeColors[type] || '#7a9e8e';
+          html += '<div class="ref-pill" style="color:' + c + ';border-color:' + c + '33;background:' + c + '12">';
+          html += '<div class="dot" style="background:' + c + '"></div>';
+          html += typeCounts[type] + ' ' + (typeLabels[type] || type);
+          html += '</div>';
+        }
+        html += '</div>';
+      }
+
+      // References list
+      if (!isCompact && references.length > 0) {
+        var showRefs = isDetailed ? references : references.slice(0, 3);
+        html += '<div class="references">';
+        html += '<div class="ref-label">Mutual References</div>';
+        showRefs.forEach(function(ref) {
+          var ri = getInitials(ref.name || '');
+          var rc = typeColors[ref.relationshipType] || '#7a9e8e';
+          html += '<div class="ref-item">';
+          html += '<div class="ref-avatar" style="background:' + getColor(ri) + '">' + esc(ri) + '</div>';
+          html += '<div class="ref-info">';
+          html += '<div class="ref-name">' + esc(ref.name || '') + '</div>';
+          html += '<div class="ref-detail">' + esc(ref.title || '') + (ref.company ? ' · ' + esc(ref.company) : '') + '</div>';
+          html += '</div>';
+          html += '<div class="ref-type" style="color:' + rc + ';background:' + rc + '15">' + esc(typeLabels[ref.relationshipType] || ref.relationshipType || '') + '</div>';
+          html += '</div>';
+        });
+        if (!isDetailed && references.length > 3) {
+          html += '<div style="text-align:center;padding:6px 0;font-size:11px;color:rgba(240,235,227,0.3)">+' + (references.length - 3) + ' more</div>';
+        }
+        html += '</div>';
+      }
+
+      // Achievements
+      if (!isCompact && achievements.length > 0) {
+        html += '<div class="achievements">';
+        html += '<div class="ref-label">Achievements</div>';
+        html += '<div class="ach-grid">';
+        achievements.forEach(function(ach) {
+          var ac = achColors[ach.type] || '#64748b';
+          html += '<div class="ach-tag">';
+          html += '<div class="ach-dot" style="background:' + ac + '"></div>';
+          html += esc(ach.title || ach.type);
+          html += '</div>';
+        });
+        html += '</div></div>';
+      }
+
+      // Standout quote
+      if (!isCompact && standout) {
+        html += '<div class="standout">';
+        html += '&ldquo;' + esc(standout) + '&rdquo;';
+        if (standoutFrom) {
+          html += '<div class="standout-attr">&mdash; ' + esc(standoutFrom) + '</div>';
+        }
+        html += '</div>';
+      }
+
+      // Performance (detailed only)
+      if (isDetailed && latestRating) {
+        html += '<div class="perf">';
+        html += '<div class="ref-label">Latest Review</div>';
+        html += '<div class="perf-row">';
+        html += '<div class="perf-period">' + esc(latestPeriod) + '</div>';
+        html += '<div class="perf-rating">' + esc(latestRating) + '</div>';
+        if (latestMerit) {
+          html += '<div class="perf-merit">' + esc(latestMerit) + '</div>';
+        }
+        html += '</div></div>';
+      }
+
+      // Footer
+      html += '<div class="footer">';
+      html += '<div class="footer-text">';
+      html += '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>';
+      html += 'Verified by Vouch';
+      html += '</div>';
+      if (data.vliHash) {
+        html += '<div class="vli-hash">' + esc(String(data.vliHash).slice(0, 12)) + '...</div>';
+      }
+      html += '</div>';
+
+      html += '</div>';
+
+      document.getElementById('root').innerHTML = html;
+    }
+
+    // ── Gallio SDK Integration ──
+    Gallio.onInit(function(msg) {
+      render(msg.data, msg.style);
+    });
+
+    Gallio.onStyleChange(function(msg) {
+      render(msg.data, msg.style);
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1080 1080" fill="none">
+  <defs>
+    <linearGradient id="bg-grad" x1="0" y1="0" x2="1080" y2="1080" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0F1A14"/>
+      <stop offset="50%" stop-color="#0D1F18"/>
+      <stop offset="100%" stop-color="#0F1A14"/>
+    </linearGradient>
+    <linearGradient id="text-grad" x1="200" y1="700" x2="880" y2="700" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#39D98A"/>
+      <stop offset="50%" stop-color="#1FB6FF"/>
+      <stop offset="100%" stop-color="#6C63FF"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="540" cy="420" r="400" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#39D98A" stop-opacity="0.12"/>
+      <stop offset="100%" stop-color="#39D98A" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1080" height="1080" rx="0" fill="url(#bg-grad)"/>
+
+  <!-- Subtle glow behind frog -->
+  <circle cx="540" cy="420" r="300" fill="url(#glow)"/>
+
+  <!-- Frog scaled up and centered (4.5x, shifted to center) -->
+  <g transform="translate(540, 380) scale(4.5) translate(-60, -60)">
+    <!-- Body -->
+    <ellipse cx="60" cy="72" rx="32" ry="28" fill="#39D98A"/>
+    <!-- Belly -->
+    <ellipse cx="60" cy="78" rx="20" ry="16" fill="#A8F0C8"/>
+    <!-- Left leg -->
+    <ellipse cx="36" cy="92" rx="14" ry="8" fill="#2BB874" transform="rotate(-15 36 92)"/>
+    <!-- Right leg -->
+    <ellipse cx="84" cy="92" rx="14" ry="8" fill="#2BB874" transform="rotate(15 84 92)"/>
+    <!-- Left arm -->
+    <ellipse cx="32" cy="68" rx="8" ry="5" fill="#2BB874" transform="rotate(-25 32 68)"/>
+    <!-- Right arm -->
+    <ellipse cx="88" cy="68" rx="8" ry="5" fill="#2BB874" transform="rotate(25 88 68)"/>
+    <!-- Head -->
+    <ellipse cx="60" cy="46" rx="28" ry="22" fill="#39D98A"/>
+    <!-- Left eye bump -->
+    <circle cx="44" cy="32" r="12" fill="#39D98A"/>
+    <!-- Right eye bump -->
+    <circle cx="76" cy="32" r="12" fill="#39D98A"/>
+    <!-- Left eye white -->
+    <circle cx="44" cy="32" r="9" fill="white"/>
+    <!-- Right eye white -->
+    <circle cx="76" cy="32" r="9" fill="white"/>
+    <!-- Left pupil -->
+    <circle cx="46" cy="31" r="5" fill="#0F3D2E"/>
+    <!-- Right pupil -->
+    <circle cx="78" cy="31" r="5" fill="#0F3D2E"/>
+    <!-- Left eye shine -->
+    <circle cx="48" cy="29" r="2" fill="white"/>
+    <!-- Right eye shine -->
+    <circle cx="80" cy="29" r="2" fill="white"/>
+    <!-- Mouth -->
+    <path d="M48 52 Q60 58 72 52" stroke="#0F3D2E" stroke-width="2" stroke-linecap="round" fill="none"/>
+  </g>
+
+  <!-- "Gallio" text with gradient -->
+  <text x="540" y="780" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="140" font-weight="800" letter-spacing="-3" fill="url(#text-grad)">Gallio</text>
+
+  <!-- Tagline -->
+  <text x="540" y="840" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="36" font-weight="400" fill="#39D98A" opacity="0.5">Your living gallery</text>
+</svg>

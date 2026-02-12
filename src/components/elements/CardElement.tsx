@@ -6,6 +6,7 @@ import { CARD_PROVIDERS } from '@/lib/cards/registry'
 import type { CardField } from '@/lib/cards/registry'
 import { LinkedInCard } from './cards/LinkedInCard'
 import { VouchCard } from './cards/VouchCard'
+import { IframeCardRenderer } from './cards/IframeCardRenderer'
 
 const CARD_RENDERERS: Record<string, React.ComponentType<{ data: Record<string, any>; style?: 'default' | 'compact' | 'detailed' }>> = {
   linkedin: LinkedInCard,
@@ -65,7 +66,13 @@ export function CardElement({
       }}
     >
       {/* Card preview */}
-      {Renderer ? (
+      {providerConfig?.type === 'external' && providerConfig.iframeUrl ? (
+        <IframeCardRenderer
+          url={providerConfig.iframeUrl}
+          data={data}
+          style={style}
+        />
+      ) : Renderer ? (
         <Renderer data={data} style={style} />
       ) : (
         <div className="p-6 rounded-xl border-2 border-dashed border-slate-300 bg-slate-50 text-center">

@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plus, ExternalLink, Eye, MoreHorizontal, BarChart3, Compass, LogOut, Menu, Layout, Clock, Settings, Pin, PinOff, GripVertical } from 'lucide-react'
+import { Plus, ExternalLink, Eye, MoreHorizontal, BarChart3, Compass, LogOut, Menu, Layout, Clock, Settings, Pin, PinOff, GripVertical, Layers } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -427,13 +427,22 @@ export default function DashboardPage() {
                   Your living gallery — {displays.length} display{displays.length !== 1 ? 's' : ''}
                 </p>
               </div>
-              <button
-                onClick={createDisplay}
-                className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 hover:scale-[1.02] transition-all"
-              >
-                <Plus className="w-4 h-4" />
-                New Page
-              </button>
+              <div className="flex items-center gap-3">
+                <Link
+                  href="/card-studio"
+                  className="flex items-center gap-2 px-5 py-3 bg-gallio-violet/10 text-gallio-violet border border-gallio-violet/20 rounded-full font-medium hover:bg-gallio-violet/20 hover:shadow-lg hover:shadow-gallio-violet/15 hover:scale-[1.02] transition-all"
+                >
+                  <Layers className="w-4 h-4" />
+                  Card Studio
+                </Link>
+                <button
+                  onClick={createDisplay}
+                  className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 hover:scale-[1.02] transition-all"
+                >
+                  <Plus className="w-4 h-4" />
+                  New Page
+                </button>
+              </div>
             </div>
 
             {/* Stats strip */}

@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, Image as ImageIcon, Save, Check, Share2, CreditCard, LayoutList } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/store'
+import { CARD_PROVIDERS } from '@/lib/cards/registry'
 import { ColumnCanvas } from '@/components/canvas/ColumnCanvas'
 import { SlashCommandMenu } from '@/components/canvas/SlashCommandMenu'
 import { BackgroundSettings } from '@/components/canvas/BackgroundSettings'
@@ -377,20 +378,13 @@ export function PageEditor({ pageId }: PageEditorProps) {
         newElement.codeShowLineNumbers = true
         newElement.codeFilename = ''
         break
-      case 'card':
-        newElement.cardProvider = 'linkedin'
-        newElement.cardData = {
-          name: '',
-          title: '',
-          company: '',
-          headline: '',
-          profileUrl: '',
-          avatarUrl: '',
-          connectionCount: '',
-          backgroundUrl: '',
-        }
+      case 'card': {
+        const firstProvider = Object.values(CARD_PROVIDERS)[0]
+        newElement.cardProvider = firstProvider?.id || 'linkedin'
+        newElement.cardData = { ...(firstProvider?.defaultData || {}) }
         newElement.cardStyle = 'default'
         break
+      }
       case 'comment':
         newElement.commentTitle = 'Comments'
         newElement.commentRequireName = true

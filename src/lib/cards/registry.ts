@@ -1,5 +1,6 @@
 // Card Provider Registry
-// Adding a new provider = one entry here + one renderer component
+// Adding a new provider = one entry here + one renderer component (builtin)
+// or an iframe URL (external)
 
 export interface CardField {
   key: string
@@ -15,6 +16,8 @@ export interface CardProviderConfig {
   name: string
   description: string
   icon: string // Lucide icon name
+  type: 'builtin' | 'external'
+  iframeUrl?: string // Required when type is 'external'
   defaultData: Record<string, any>
   fields: CardField[]
 }
@@ -25,6 +28,7 @@ export const CARD_PROVIDERS: Record<string, CardProviderConfig> = {
     name: 'LinkedIn',
     description: 'Professional profile card',
     icon: 'Linkedin',
+    type: 'builtin',
     defaultData: {
       name: '',
       title: '',
@@ -51,6 +55,7 @@ export const CARD_PROVIDERS: Record<string, CardProviderConfig> = {
     name: 'Vouch',
     description: 'Professional credibility card',
     icon: 'ShieldCheck',
+    type: 'builtin',
     defaultData: {
       name: 'Jane Doe',
       title: 'Engineering Manager',
@@ -82,6 +87,32 @@ export const CARD_PROVIDERS: Record<string, CardProviderConfig> = {
       { key: 'latestPeriod', label: 'Review Period', type: 'text', placeholder: 'H2 2025' },
     ],
   },
+  example: {
+    id: 'example',
+    name: 'Example Card',
+    description: 'Developer template — external iframe card',
+    icon: 'ExternalLink',
+    type: 'external',
+    iframeUrl: '/sdk/example-card.html',
+    defaultData: {
+      title: 'Hello World',
+      description: 'This is an example external card',
+      color: '#39D98A',
+    },
+    fields: [
+      { key: 'title', label: 'Title', type: 'text', placeholder: 'Card title', required: true },
+      { key: 'description', label: 'Description', type: 'textarea', placeholder: 'Card description' },
+      { key: 'color', label: 'Accent Color', type: 'text', placeholder: '#39D98A' },
+    ],
+  },
+}
+
+// Register an external card at runtime
+export function registerExternalCard(config: CardProviderConfig): void {
+  if (config.type !== 'external' || !config.iframeUrl) {
+    throw new Error('External cards must have type "external" and an iframeUrl')
+  }
+  CARD_PROVIDERS[config.id] = config
 }
 
 // Achievement type icons + colors (maps to Vouch's 12 types)

@@ -17,7 +17,6 @@ import {
   Star,
   MessageSquare,
   PieChart,
-  CreditCard,
   Code2,
   ChevronDown as ChevronDownIcon,
 } from 'lucide-react'
@@ -61,12 +60,9 @@ const commands: Command[] = [
   // Social
   { id: 'comment', label: 'Comments', icon: MessageSquare, description: 'Visitor comment section', category: 'Social' },
   { id: 'poll', label: 'Poll', icon: BarChart3, description: 'Vote on options', category: 'Social' },
-
-  // Integrations (on hold)
-  { id: 'card', label: 'App Card', icon: CreditCard, description: 'Coming soon', category: 'Integrations', disabled: true, disabledLabel: 'Soon' },
 ]
 
-const CATEGORY_ORDER = ['Content', 'Data & Visuals', 'Media', 'Forms', 'Social', 'Integrations']
+const CATEGORY_ORDER = ['Content', 'Data & Visuals', 'Media', 'Forms', 'Social']
 
 interface SlashCommandMenuProps {
   position: { x: number; y: number }

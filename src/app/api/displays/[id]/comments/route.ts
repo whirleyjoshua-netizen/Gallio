@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
+import { verifyAuth } from '@/lib/auth'
 
 // GET /api/displays/[id]/comments — public, no auth needed
 export async function GET(
@@ -85,5 +86,50 @@ export async function POST(
   } catch (error) {
     console.error('Error creating comment:', error)
     return NextResponse.json({ error: 'Failed to create comment' }, { status: 500 })
+  }
+}
+
+// PATCH /api/displays/[id]/comments — owner approves/rejects a comment
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  try {
+    const authHeader = request.headers.get('Authorization')
+    const token = authHeader?.replace('Bearer ', '')
+    if (!token) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const user = await verifyAuth(token)
+    if (!user) {
+      return NextResponse.json({ error: 'Invalid token' }, { status: 401 })
+    }
+
+    const display = await db.display.findUnique({
+      where: { id },
+      select: { id: true, userId: true },
+    })
+    if (!display || display.userId !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    const body = await request.json()
+    const { commentId, approved } = body
+
+    if (!commentId || typeof approved !== 'boolean') {
+      return NextResponse.json({ error: 'commentId and approved required' }, { status: 400 })
+    }
+
+    const comment = await db.comment.update({
+      where: { id: commentId },
+      data: { approved },
+    })
+
+    return NextResponse.json(comment)
+  } catch (error) {
+    console.error('Error updating comment:', error)
+    return NextResponse.json({ error: 'Failed to update comment' }, { status: 500 })
   }
 }

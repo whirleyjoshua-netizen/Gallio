@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useAuthStore } from '@/lib/store'
 
 export default function SignupPage() {
@@ -46,75 +47,81 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
-        <h1 className="text-2xl font-bold text-center mb-8">Create your account</h1>
+        {/* Frog + Brand */}
+        <div className="flex flex-col items-center mb-8">
+          <Image src="/gallio-frog.svg" alt="Gallio" width={48} height={48} className="mb-3" />
+          <h1 className="text-2xl font-bold text-center">Create your account</h1>
+        </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && (
-            <div className="p-3 text-sm text-red-500 bg-red-50 rounded-lg">
-              {error}
+        <div className="bg-background border border-border rounded-2xl p-6 shadow-sm">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <div className="p-3 text-sm text-red-600 bg-red-50 rounded-xl">
+                {error}
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Name</label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-2.5 border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="Optional"
+              />
             </div>
-          )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Name</label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              placeholder="Optional"
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+                className="w-full px-4 py-2.5 border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                Your displays will be at gallio.app/{username || 'username'}
+              </p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value.toLowerCase())}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-            <p className="mt-1 text-xs text-muted-foreground">
-              Your displays will be at pages.app/{username || 'username'}
-            </p>
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-4 py-2.5 border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Email</label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-          </div>
+            <div>
+              <label className="block text-sm font-medium mb-1.5">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full px-4 py-2.5 border border-border rounded-xl bg-muted/30 focus:outline-none focus:ring-2 focus:ring-primary"
+                minLength={8}
+                required
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              minLength={8}
-              required
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-2 bg-primary text-primary-foreground rounded-lg font-medium hover:opacity-90 transition disabled:opacity-50"
-          >
-            {loading ? 'Creating account...' : 'Create account'}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-2.5 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 transition-all disabled:opacity-50"
+            >
+              {loading ? 'Creating account...' : 'Create account'}
+            </button>
+          </form>
+        </div>
 
         <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link href="/login" className="text-primary hover:underline">
+          <Link href="/login" className="text-primary font-medium hover:underline">
             Log in
           </Link>
         </p>

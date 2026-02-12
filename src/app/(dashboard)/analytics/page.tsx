@@ -3,8 +3,9 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, BarChart3, Eye, Users, Monitor, Smartphone, Tablet, Globe, Calendar } from 'lucide-react'
+import { ArrowLeft, BarChart3, Eye, Users, Monitor, Smartphone, Tablet, Globe, Calendar, Inbox } from 'lucide-react'
 import { useAuthStore } from '@/lib/store'
+import { ElementsTab } from '@/components/analytics/ElementsTab'
 
 interface AnalyticsData {
   display: {
@@ -69,6 +70,9 @@ function AnalyticsContent() {
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
   const [loading, setLoading] = useState(true)
   const [days, setDays] = useState(30)
+  const [activeTab, setActiveTab] = useState<'overview' | 'elements'>(
+    searchParams.get('tab') === 'elements' ? 'elements' : 'overview'
+  )
 
   // Fetch user's displays
   useEffect(() => {
@@ -175,10 +179,39 @@ function AnalyticsContent() {
             ))}
           </select>
         </div>
+
+        {/* Tab Navigation */}
+        <div className="max-w-6xl mx-auto mt-4">
+          <div className="flex gap-0">
+            <button
+              onClick={() => setActiveTab('overview')}
+              className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 ${
+                activeTab === 'overview'
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab('elements')}
+              className={`px-5 py-3 text-sm font-medium transition-colors border-b-2 flex items-center gap-2 ${
+                activeTab === 'elements'
+                  ? 'border-primary text-foreground'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <Inbox className="w-4 h-4" />
+              Elements
+            </button>
+          </div>
+        </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {loading && !analytics ? (
+        {activeTab === 'elements' ? (
+          <ElementsTab displayId={selectedDisplayId} />
+        ) : loading && !analytics ? (
           <div className="flex items-center justify-center py-20">
             <p className="text-muted-foreground">Loading analytics...</p>
           </div>

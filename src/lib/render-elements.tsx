@@ -1,11 +1,14 @@
 import type { Column, CanvasElement, ColumnSettings } from '@/lib/types/canvas'
 import { DEFAULT_COLUMN_SETTINGS } from '@/lib/types/canvas'
-import { TrendingUp, TrendingDown, Minus, Info, AlertTriangle, CheckCircle, XCircle, ChevronRight, Star } from 'lucide-react'
+import { TrendingUp, TrendingDown, Minus, Info, AlertTriangle, CheckCircle, XCircle, ChevronRight } from 'lucide-react'
 import { PublicChartElement } from '@/components/elements/PublicChartElement'
 import { PublicCardElement } from '@/components/elements/PublicCardElement'
 import { PublicCodeElement } from '@/components/elements/PublicCodeElement'
 import { PublicCommentSection } from '@/components/elements/PublicCommentSection'
 import { PublicPollElement } from '@/components/elements/PublicPollElement'
+import { PublicMCQElement } from '@/components/elements/PublicMCQElement'
+import { PublicRatingElement } from '@/components/elements/PublicRatingElement'
+import { PublicShortAnswerElement } from '@/components/elements/PublicShortAnswerElement'
 
 export function getGridClass(layout: string): string {
   switch (layout) {
@@ -342,74 +345,13 @@ export function renderElement(element: CanvasElement, displayId?: string) {
       )
 
     case 'mcq':
-      return (
-        <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <div className="text-lg font-medium mb-4">
-            {element.mcqQuestion}
-            {element.mcqRequired && <span className="text-destructive ml-1">*</span>}
-          </div>
-          <div className="space-y-2">
-            {(element.mcqOptions || []).map((option, index) => (
-              <label key={index} className="flex items-center gap-3 p-2 rounded hover:bg-muted/50 cursor-pointer">
-                {element.mcqAllowMultiple ? (
-                  <input type="checkbox" className="w-4 h-4 rounded" />
-                ) : (
-                  <input type="radio" name={`mcq-${element.id}`} className="w-4 h-4" />
-                )}
-                <span>{option}</span>
-              </label>
-            ))}
-          </div>
-        </div>
-      )
+      return <PublicMCQElement element={element} displayId={displayId || ''} />
 
-    case 'rating': {
-      const ratingMax = element.ratingMax || 5
-      return (
-        <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <div className="text-lg font-medium mb-4">
-            {element.ratingQuestion}
-            {element.ratingRequired && <span className="text-destructive ml-1">*</span>}
-          </div>
-          {element.ratingStyle === 'stars' ? (
-            <div className="flex items-center gap-1">
-              {Array.from({ length: ratingMax }, (_, i) => (
-                <button key={i} className="p-1 hover:scale-110 transition-transform">
-                  <Star className="w-8 h-8 text-muted-foreground/30 hover:fill-yellow-400 hover:text-yellow-400 transition-colors" />
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex items-center gap-2">
-              {Array.from({ length: ratingMax }, (_, i) => (
-                <button
-                  key={i}
-                  className="w-10 h-10 rounded-lg border-2 border-border font-medium hover:border-primary hover:bg-primary hover:text-primary-foreground transition-all"
-                >
-                  {i + 1}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )
-    }
+    case 'rating':
+      return <PublicRatingElement element={element} displayId={displayId || ''} />
 
     case 'shortanswer':
-      return (
-        <div className="p-4 bg-muted/30 rounded-lg border border-border">
-          <div className="text-lg font-medium mb-3">
-            {element.shortAnswerQuestion}
-            {element.shortAnswerRequired && <span className="text-destructive ml-1">*</span>}
-          </div>
-          <textarea
-            placeholder={element.shortAnswerPlaceholder}
-            maxLength={element.shortAnswerMaxLength}
-            className="w-full px-3 py-2 border border-border rounded-lg bg-background focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            rows={3}
-          />
-        </div>
-      )
+      return <PublicShortAnswerElement element={element} displayId={displayId || ''} />
 
     case 'chart':
       return <PublicChartElement element={element} />

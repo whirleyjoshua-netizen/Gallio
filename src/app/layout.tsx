@@ -5,8 +5,8 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Pages - Beautiful displays for your work',
-  description: 'Create shareable portfolios, galleries, and catalogs in minutes.',
+  title: 'Gallio — A living gallery of you.',
+  description: 'Create, share, and track beautiful interactive displays.',
 }
 
 export default function RootLayout({

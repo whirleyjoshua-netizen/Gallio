@@ -18,7 +18,8 @@ model User {
   dashboardPrefs Json?
   createdAt      DateTime  @default(now())
   updatedAt DateTime  @updatedAt
-  displays  Display[]
+  displays    Display[]
+  cardLibrary CardLibraryItem[]
 }
 
 model Display {
@@ -155,4 +156,18 @@ model ShareLink {
 
   @@index([displayId])
   @@index([code])
+}
+
+model CardLibraryItem {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  provider   String
+  name       String
+  data       Json     @default("{}")
+  style      String   @default("default")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([userId])
 }

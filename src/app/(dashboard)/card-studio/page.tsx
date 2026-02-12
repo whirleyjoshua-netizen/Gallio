@@ -1,34 +1,48 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import { ArrowLeft, ExternalLink, Code2, Layers, Search } from 'lucide-react'
+import { ArrowLeft, ExternalLink, Code2, Layers, Search, Plus, Trash2, BookOpen, X, Library } from 'lucide-react'
 import { CARD_PROVIDERS } from '@/lib/cards/registry'
 import type { CardProviderConfig } from '@/lib/cards/registry'
 import { LinkedInCard } from '@/components/elements/cards/LinkedInCard'
 import { VouchCard } from '@/components/elements/cards/VouchCard'
 import { IframeCardRenderer } from '@/components/elements/cards/IframeCardRenderer'
+import { useAuthStore } from '@/lib/store'
 
 const BUILTIN_RENDERERS: Record<string, React.ComponentType<{ data: Record<string, any>; style?: 'default' | 'compact' | 'detailed' }>> = {
   linkedin: LinkedInCard,
   vouch: VouchCard,
 }
 
-function CardPreview({ provider }: { provider: CardProviderConfig }) {
+interface LibraryItem {
+  id: string
+  provider: string
+  name: string
+  data: Record<string, any>
+  style: string
+  createdAt: string
+  updatedAt: string
+}
+
+function CardPreview({ provider, data, style }: { provider: CardProviderConfig; data?: Record<string, any>; style?: string }) {
+  const cardData = data || provider.defaultData
+  const cardStyle = (style || 'default') as 'default' | 'compact' | 'detailed'
+
   if (provider.type === 'external' && provider.iframeUrl) {
     return (
       <IframeCardRenderer
         url={provider.iframeUrl}
-        data={provider.defaultData}
-        style="default"
+        data={cardData}
+        style={cardStyle}
       />
     )
   }
 
   const Renderer = BUILTIN_RENDERERS[provider.id]
   if (Renderer) {
-    return <Renderer data={provider.defaultData} style="default" />
+    return <Renderer data={cardData} style={cardStyle} />
   }
 
   return (
@@ -39,9 +53,21 @@ function CardPreview({ provider }: { provider: CardProviderConfig }) {
 }
 
 export default function CardStudioPage() {
+  const { token } = useAuthStore()
+  const [activeTab, setActiveTab] = useState<'browse' | 'library'>('browse')
   const [search, setSearch] = useState('')
   const [selectedCard, setSelectedCard] = useState<string | null>(null)
   const [previewStyle, setPreviewStyle] = useState<'default' | 'compact' | 'detailed'>('default')
+
+  // Library state
+  const [libraryItems, setLibraryItems] = useState<LibraryItem[]>([])
+  const [libraryLoading, setLibraryLoading] = useState(false)
+
+  // Add to library modal
+  const [addModalOpen, setAddModalOpen] = useState(false)
+  const [addModalProvider, setAddModalProvider] = useState<string | null>(null)
+  const [addModalName, setAddModalName] = useState('')
+  const [addingSaving, setAddingSaving] = useState(false)
 
   const providers = Object.values(CARD_PROVIDERS)
   const filtered = providers.filter(p =>
@@ -49,7 +75,96 @@ export default function CardStudioPage() {
     p.description.toLowerCase().includes(search.toLowerCase())
   )
 
+  const filteredLibrary = libraryItems.filter(item => {
+    const provider = CARD_PROVIDERS[item.provider]
+    const providerName = provider?.name || item.provider
+    return providerName.toLowerCase().includes(search.toLowerCase()) ||
+      item.name.toLowerCase().includes(search.toLowerCase())
+  })
+
   const selected = selectedCard ? CARD_PROVIDERS[selectedCard] : null
+
+  // Fetch library
+  const fetchLibrary = useCallback(async () => {
+    if (!token) return
+    setLibraryLoading(true)
+    try {
+      const res = await fetch('/api/card-library', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setLibraryItems(data)
+      }
+    } catch {} finally {
+      setLibraryLoading(false)
+    }
+  }, [token])
+
+  useEffect(() => {
+    fetchLibrary()
+  }, [fetchLibrary])
+
+  // Add to library
+  const handleAddToLibrary = async () => {
+    if (!addModalProvider || !addModalName.trim() || !token) return
+    setAddingSaving(true)
+    try {
+      const provider = CARD_PROVIDERS[addModalProvider]
+      const res = await fetch('/api/card-library', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          provider: addModalProvider,
+          name: addModalName.trim(),
+          data: provider?.defaultData || {},
+          style: 'default',
+        }),
+      })
+      if (res.ok) {
+        await fetchLibrary()
+        setAddModalOpen(false)
+        setAddModalProvider(null)
+        setAddModalName('')
+        setActiveTab('library')
+      }
+    } catch {} finally {
+      setAddingSaving(false)
+    }
+  }
+
+  // Delete from library
+  const handleDeleteLibraryItem = async (id: string) => {
+    if (!token) return
+    try {
+      await fetch(`/api/card-library/${id}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      setLibraryItems(prev => prev.filter(item => item.id !== id))
+    } catch {}
+  }
+
+  const openAddModal = (providerId: string) => {
+    const provider = CARD_PROVIDERS[providerId]
+    setAddModalProvider(providerId)
+    setAddModalName(provider?.name || '')
+    setAddModalOpen(true)
+  }
+
+  const timeAgo = (dateStr: string) => {
+    const diff = Date.now() - new Date(dateStr).getTime()
+    const mins = Math.floor(diff / 60000)
+    if (mins < 60) return `${mins}m ago`
+    const hrs = Math.floor(mins / 60)
+    if (hrs < 24) return `${hrs}h ago`
+    const days = Math.floor(hrs / 24)
+    if (days < 30) return `${days}d ago`
+    return `${Math.floor(days / 30)}mo ago`
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -69,7 +184,7 @@ export default function CardStudioPage() {
               <span className="text-gallio-gradient tracking-tight">Gallio</span>
             </Link>
           </div>
-          <div className="w-[140px]" /> {/* Spacer to balance the back link */}
+          <div className="w-[140px]" />
         </div>
       </nav>
 
@@ -84,38 +199,64 @@ export default function CardStudioPage() {
               <h1 className="text-3xl font-bold">Card Studio</h1>
             </div>
             <p className="text-muted-foreground max-w-xl">
-              Browse and preview app cards. Add them to any page using the editor, or build your own with the developer SDK.
+              Browse app cards, add them to your library, then use them on any page.
             </p>
 
-            {/* Search */}
-            <div className="mt-6 max-w-md relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                type="text"
-                placeholder="Search cards..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2.5 bg-background/60 backdrop-blur-sm border border-border/50 rounded-full text-sm outline-none focus:ring-2 focus:ring-gallio/30 focus:border-gallio/30 transition-all"
-              />
+            {/* Tab switcher + Search row */}
+            <div className="mt-6 flex items-center gap-4 flex-wrap">
+              {/* Tabs */}
+              <div className="flex bg-muted/50 rounded-full p-1 border border-border/50">
+                <button
+                  onClick={() => { setActiveTab('browse'); setSelectedCard(null) }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    activeTab === 'browse'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <BookOpen className="w-4 h-4" />
+                  Browse
+                </button>
+                <button
+                  onClick={() => { setActiveTab('library'); setSelectedCard(null) }}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all ${
+                    activeTab === 'library'
+                      ? 'bg-background text-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <Library className="w-4 h-4" />
+                  My Library
+                  {libraryItems.length > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 text-[10px] font-semibold bg-gallio/15 text-gallio rounded-full">
+                      {libraryItems.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              {/* Search */}
+              <div className="flex-1 max-w-md relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input
+                  type="text"
+                  placeholder={activeTab === 'browse' ? 'Search cards...' : 'Search library...'}
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 bg-background/60 backdrop-blur-sm border border-border/50 rounded-full text-sm outline-none focus:ring-2 focus:ring-gallio/30 focus:border-gallio/30 transition-all"
+                />
+              </div>
             </div>
 
             {/* Stats */}
-            <div className="mt-6 flex gap-4">
+            <div className="mt-4 flex gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-background/60 backdrop-blur-sm rounded-full border border-border/50">
                 <Layers className="w-4 h-4 text-gallio" />
-                <span className="text-sm font-medium">{providers.length} cards</span>
+                <span className="text-sm font-medium">{providers.length} available</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-background/60 backdrop-blur-sm rounded-full border border-border/50">
-                <Code2 className="w-4 h-4 text-gallio-aqua" />
-                <span className="text-sm font-medium">
-                  {providers.filter(p => p.type === 'builtin').length} built-in
-                </span>
-              </div>
-              <div className="flex items-center gap-2 px-4 py-2 bg-background/60 backdrop-blur-sm rounded-full border border-border/50">
-                <ExternalLink className="w-4 h-4 text-gallio-violet" />
-                <span className="text-sm font-medium">
-                  {providers.filter(p => p.type === 'external').length} external
-                </span>
+                <Library className="w-4 h-4 text-gallio-violet" />
+                <span className="text-sm font-medium">{libraryItems.length} in library</span>
               </div>
             </div>
           </div>
@@ -125,8 +266,8 @@ export default function CardStudioPage() {
 
       {/* Content */}
       <main className="max-w-6xl mx-auto px-6 py-8">
-        {selected ? (
-          // Detail view
+        {activeTab === 'browse' && selected ? (
+          // Browse detail view
           <div>
             <button
               onClick={() => setSelectedCard(null)}
@@ -158,20 +299,7 @@ export default function CardStudioPage() {
                   </div>
                 </div>
                 <div className="p-6 bg-muted/20 border border-border rounded-xl">
-                  {selected.type === 'external' && selected.iframeUrl ? (
-                    <IframeCardRenderer
-                      url={selected.iframeUrl}
-                      data={selected.defaultData}
-                      style={previewStyle}
-                    />
-                  ) : BUILTIN_RENDERERS[selected.id] ? (
-                    (() => {
-                      const R = BUILTIN_RENDERERS[selected.id]
-                      return <R data={selected.defaultData} style={previewStyle} />
-                    })()
-                  ) : (
-                    <div className="p-8 text-center text-muted-foreground text-sm">No preview</div>
-                  )}
+                  <CardPreview provider={selected} style={previewStyle} />
                 </div>
               </div>
 
@@ -188,6 +316,15 @@ export default function CardStudioPage() {
                   </span>
                 </div>
                 <p className="text-muted-foreground mb-6">{selected.description}</p>
+
+                {/* Add to Library button */}
+                <button
+                  onClick={() => openAddModal(selected.id)}
+                  className="flex items-center gap-2 px-5 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 hover:scale-[1.02] transition-all mb-6"
+                >
+                  <Plus className="w-4 h-4" />
+                  Add to Library
+                </button>
 
                 {/* Fields */}
                 <div className="mb-6">
@@ -212,7 +349,7 @@ export default function CardStudioPage() {
                 <div className="bg-muted/20 border border-border rounded-xl p-5">
                   <h3 className="text-sm font-semibold mb-2">How to use</h3>
                   <p className="text-sm text-muted-foreground">
-                    Add this card to any page using the editor. Open a page, type <kbd className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">/</kbd> to open the element menu, select <strong>App Card</strong>, then choose <strong>{selected.name}</strong> from the provider dropdown in the settings panel.
+                    Add this card to your library, then open a page in the editor and type <kbd className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">/</kbd> to insert an <strong>App Card</strong> from your library.
                   </p>
                 </div>
 
@@ -233,8 +370,8 @@ export default function CardStudioPage() {
               </div>
             </div>
           </div>
-        ) : (
-          // Gallery view
+        ) : activeTab === 'browse' ? (
+          // Browse gallery
           <div>
             {filtered.length === 0 ? (
               <div className="text-center py-20">
@@ -249,14 +386,11 @@ export default function CardStudioPage() {
                     onClick={() => { setSelectedCard(provider.id); setPreviewStyle('default') }}
                     className="group text-left border border-border rounded-xl overflow-hidden hover:border-gallio/40 hover:shadow-lg hover:shadow-gallio/10 transition-all bg-background"
                   >
-                    {/* Preview thumbnail */}
                     <div className="p-4 bg-muted/20 border-b border-border min-h-[160px] flex items-center justify-center">
                       <div className="w-full max-w-[280px] transform scale-[0.85] origin-center pointer-events-none">
                         <CardPreview provider={provider} />
                       </div>
                     </div>
-
-                    {/* Card info */}
                     <div className="p-4">
                       <div className="flex items-center gap-2 mb-1">
                         <h3 className="font-semibold group-hover:text-gallio transition-colors">
@@ -278,7 +412,7 @@ export default function CardStudioPage() {
                   </button>
                 ))}
 
-                {/* Build your own card */}
+                {/* Build your own */}
                 <div className="border-2 border-dashed border-border rounded-xl flex flex-col items-center justify-center p-8 hover:border-gallio/40 hover:bg-gallio/[0.02] transition-all min-h-[300px]">
                   <div className="w-14 h-14 rounded-full bg-gallio/10 flex items-center justify-center mb-4">
                     <Code2 className="w-7 h-7 text-gallio" />
@@ -294,8 +428,144 @@ export default function CardStudioPage() {
               </div>
             )}
           </div>
+        ) : (
+          // Library tab
+          <div>
+            {libraryLoading ? (
+              <div className="text-center py-20 text-muted-foreground">Loading library...</div>
+            ) : filteredLibrary.length === 0 ? (
+              <div className="text-center py-20">
+                {search ? (
+                  <>
+                    <Search className="w-10 h-10 text-muted-foreground/30 mx-auto mb-4" />
+                    <p className="text-muted-foreground">No library cards matching &ldquo;{search}&rdquo;</p>
+                  </>
+                ) : (
+                  <>
+                    <Library className="w-12 h-12 text-muted-foreground/20 mx-auto mb-4" />
+                    <h2 className="text-lg font-semibold mb-2">Your library is empty</h2>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Browse available cards and add them to your library. Then use them on any page via the <kbd className="font-mono bg-muted px-1.5 py-0.5 rounded text-xs">/</kbd> menu.
+                    </p>
+                    <button
+                      onClick={() => setActiveTab('browse')}
+                      className="px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 transition-all"
+                    >
+                      Browse Cards
+                    </button>
+                  </>
+                )}
+              </div>
+            ) : (
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                {filteredLibrary.map(item => {
+                  const provider = CARD_PROVIDERS[item.provider]
+                  if (!provider) return null
+                  return (
+                    <div
+                      key={item.id}
+                      className="group border border-border rounded-xl overflow-hidden bg-background hover:border-gallio/40 hover:shadow-lg hover:shadow-gallio/10 transition-all"
+                    >
+                      {/* Preview */}
+                      <div className="p-4 bg-muted/20 border-b border-border min-h-[160px] flex items-center justify-center relative">
+                        <div className="w-full max-w-[280px] transform scale-[0.85] origin-center pointer-events-none">
+                          <CardPreview provider={provider} data={item.data as Record<string, any>} style={item.style} />
+                        </div>
+                        {/* Delete button */}
+                        <button
+                          onClick={() => handleDeleteLibraryItem(item.id)}
+                          className="absolute top-3 right-3 p-1.5 bg-background/80 border border-border rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive hover:text-destructive-foreground hover:border-destructive"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      {/* Info */}
+                      <div className="p-4">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold truncate">{item.name}</h3>
+                          <span className={`px-2 py-0.5 text-[10px] font-medium rounded-full flex-shrink-0 ${
+                            provider.type === 'builtin'
+                              ? 'bg-gallio/10 text-gallio'
+                              : 'bg-gallio-violet/10 text-gallio-violet'
+                          }`}>
+                            {provider.name}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-2">
+                          <span className="text-xs text-muted-foreground">
+                            Added {timeAgo(item.createdAt)}
+                          </span>
+                          <span className="text-xs text-muted-foreground capitalize">
+                            {item.style} style
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
         )}
       </main>
+
+      {/* Add to Library modal */}
+      {addModalOpen && (
+        <>
+          <div className="fixed inset-0 bg-black/50 z-50" onClick={() => setAddModalOpen(false)} />
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="bg-background border border-border rounded-2xl shadow-2xl w-full max-w-md p-6" onClick={e => e.stopPropagation()}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Add to Library</h3>
+                <button onClick={() => setAddModalOpen(false)} className="p-1 hover:bg-muted rounded-lg transition">
+                  <X className="w-5 h-5 text-muted-foreground" />
+                </button>
+              </div>
+
+              {addModalProvider && CARD_PROVIDERS[addModalProvider] && (
+                <div className="flex items-center gap-3 mb-4 p-3 bg-muted/30 rounded-lg border border-border/50">
+                  <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
+                    CARD_PROVIDERS[addModalProvider].type === 'builtin'
+                      ? 'bg-gallio/10 text-gallio'
+                      : 'bg-gallio-violet/10 text-gallio-violet'
+                  }`}>
+                    {CARD_PROVIDERS[addModalProvider].name}
+                  </span>
+                  <span className="text-sm text-muted-foreground">{CARD_PROVIDERS[addModalProvider].description}</span>
+                </div>
+              )}
+
+              <label className="text-sm font-medium block mb-1.5">Card Name</label>
+              <input
+                type="text"
+                value={addModalName}
+                onChange={e => setAddModalName(e.target.value)}
+                placeholder="e.g. My LinkedIn Card"
+                className="w-full px-3 py-2.5 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-gallio/30 mb-4"
+                autoFocus
+                onKeyDown={e => e.key === 'Enter' && handleAddToLibrary()}
+              />
+
+              <div className="flex gap-2 justify-end">
+                <button
+                  onClick={() => setAddModalOpen(false)}
+                  className="px-4 py-2 text-sm text-muted-foreground hover:text-foreground transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddToLibrary}
+                  disabled={!addModalName.trim() || addingSaving}
+                  className="px-5 py-2 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:shadow-lg transition disabled:opacity-50"
+                >
+                  {addingSaving ? 'Adding...' : 'Add to Library'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   )
 }

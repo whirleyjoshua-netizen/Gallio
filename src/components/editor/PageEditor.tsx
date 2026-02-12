@@ -5,12 +5,12 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Eye, Image as ImageIcon, Save, Check, Share2, CreditCard, LayoutList } from 'lucide-react'
 import Link from 'next/link'
 import { useAuthStore } from '@/lib/store'
-import { CARD_PROVIDERS } from '@/lib/cards/registry'
 import { ColumnCanvas } from '@/components/canvas/ColumnCanvas'
 import { SlashCommandMenu } from '@/components/canvas/SlashCommandMenu'
 import { BackgroundSettings } from '@/components/canvas/BackgroundSettings'
 import { ColumnStyleSettings } from '@/components/canvas/ColumnStyleSettings'
 import { ShareDialog } from '@/components/editor/ShareDialog'
+import { CardLibraryPicker } from '@/components/editor/CardLibraryPicker'
 import { HeaderCard } from '@/components/header/HeaderCard'
 import { HeaderCardEditor } from '@/components/header/HeaderCardEditor'
 import { TabBar } from '@/components/tabs/TabBar'
@@ -62,6 +62,9 @@ export function PageEditor({ pageId }: PageEditorProps) {
   // Header card & tab editor state
   const [showHeaderEditor, setShowHeaderEditor] = useState(false)
   const [showTabEditor, setShowTabEditor] = useState(false)
+
+  // Card picker state
+  const [cardPickerOpen, setCardPickerOpen] = useState(false)
 
   // Column settings state
   const [showColumnSettings, setShowColumnSettings] = useState(false)
@@ -379,11 +382,10 @@ export function PageEditor({ pageId }: PageEditorProps) {
         newElement.codeFilename = ''
         break
       case 'card': {
-        const firstProvider = Object.values(CARD_PROVIDERS)[0]
-        newElement.cardProvider = firstProvider?.id || 'linkedin'
-        newElement.cardData = { ...(firstProvider?.defaultData || {}) }
-        newElement.cardStyle = 'default'
-        break
+        // Open the library picker instead of creating element immediately
+        setShowSlashMenu(false)
+        setCardPickerOpen(true)
+        return
       }
       case 'comment':
         newElement.commentTitle = 'Comments'
@@ -417,6 +419,39 @@ export function PageEditor({ pageId }: PageEditorProps) {
     )
 
     setShowSlashMenu(false)
+    setCurrentSection(null)
+    setCurrentColumn(null)
+  }
+
+  // Card picker selection handler
+  const handleCardPickerSelect = (card: { provider: string; data: Record<string, any>; style: string }) => {
+    if (!currentSection || !currentColumn) return
+
+    const newElement: CanvasElement = {
+      id: crypto.randomUUID(),
+      type: 'card',
+      content: '',
+      cardProvider: card.provider,
+      cardData: { ...card.data },
+      cardStyle: (card.style || 'default') as 'default' | 'compact' | 'detailed',
+    }
+
+    setActiveSections((prev) =>
+      prev.map((section) =>
+        section.id === currentSection
+          ? {
+              ...section,
+              columns: section.columns.map((col) =>
+                col.id === currentColumn
+                  ? { ...col, elements: [...col.elements, newElement] }
+                  : col
+              ),
+            }
+          : section
+      )
+    )
+
+    setCardPickerOpen(false)
     setCurrentSection(null)
     setCurrentColumn(null)
   }
@@ -768,6 +803,17 @@ export function PageEditor({ pageId }: PageEditorProps) {
         onClose={() => setShowHeaderEditor(false)}
         config={headerCard}
         onChange={setHeaderCard}
+      />
+
+      {/* Card Library Picker */}
+      <CardLibraryPicker
+        isOpen={cardPickerOpen}
+        onClose={() => {
+          setCardPickerOpen(false)
+          setCurrentSection(null)
+          setCurrentColumn(null)
+        }}
+        onSelect={handleCardPickerSelect}
       />
 
       {/* Tab Editor */}

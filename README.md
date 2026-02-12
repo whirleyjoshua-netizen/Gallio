@@ -1,24 +1,29 @@
-# Pages
+# Gallio
 
-**Beautiful displays for your work, art, and ideas.**
+**A living gallery of you.**
 
-Create shareable portfolios, galleries, and catalogs in minutes.
+Create, share, and track beautiful interactive displays in minutes.
 
 ---
 
-## What is Pages?
+## What is Gallio?
 
-Pages is an open-source platform for creating beautiful, interactive displays. Whether you're an artist showcasing a gallery, a realtor displaying listings, a developer presenting projects, or anyone with something to share—Pages gives you a simple way to present your work.
+Gallio is an open-source platform for creating beautiful, interactive displays. Whether you're an artist showcasing a gallery, a realtor displaying listings, a developer presenting projects, or anyone with something to share — Gallio gives you a simple way to present your work.
 
 **Not a document editor. Not a design tool. A display platform.**
 
 ## Features
 
-- **Simple block-based editor** - Add images, text, links, and embeds
-- **Multiple layouts** - Grid, masonry, or list views
-- **Themes** - Light, dark, minimal, or bold
-- **Shareable URLs** - `pages.app/username/my-portfolio`
-- **No design skills needed** - Focus on your content
+- **Column-based canvas editor** — Add text, images, embeds, buttons, code blocks, charts, and more via slash commands
+- **Multiple layouts** — Single column, two-column, three-column sections
+- **Header cards** — Profile, Resume, and Catalog hero templates with photo presets and action buttons
+- **Tab navigation** — Pages within pages, each tab with its own full canvas
+- **Interactive elements** — MCQ, ratings, short answer, polls, comments with public submission
+- **Background customization** — Solid colors, gradients, patterns, and images
+- **Analytics dashboard** — Views, traffic sources, device breakdown, and per-element response digests
+- **Share links** — Custom `/s/[code]` short links with click tracking
+- **Dashboard customization** — Custom background, drag-and-drop card reordering, pin displays
+- **Shareable URLs** — `gallio.app/username/my-portfolio`
 
 ## Tech Stack
 
@@ -28,6 +33,7 @@ Pages is an open-source platform for creating beautiful, interactive displays. W
 - **Database**: PostgreSQL + Prisma
 - **Auth**: JWT
 - **State**: Zustand
+- **Drag & Drop**: @dnd-kit
 
 ## Getting Started
 
@@ -41,8 +47,8 @@ Pages is an open-source platform for creating beautiful, interactive displays. W
 
 ```bash
 # Clone the repo
-git clone https://github.com/yourusername/pages.git
-cd pages
+git clone https://github.com/whirleyjoshua-netizen/Gallio.git
+cd Gallio
 
 # Install dependencies
 pnpm install
@@ -67,36 +73,42 @@ Visit `http://localhost:3000`
 src/
 ├── app/                    # Next.js App Router
 │   ├── (auth)/            # Login, signup
-│   ├── (dashboard)/       # User dashboard
-│   ├── editor/[id]/       # Display editor
+│   ├── (dashboard)/       # Dashboard, analytics
+│   ├── editor/            # Display editor
 │   ├── [username]/[slug]/ # Public display view
+│   ├── s/[code]/          # Share link view
 │   └── api/               # API routes
-├── components/            # React components
-├── lib/                   # Utilities, types, stores
-└── prisma/               # Database schema
+├── components/
+│   ├── canvas/            # Column canvas, background settings
+│   ├── editor/            # Page editor, slash command menu
+│   ├── elements/          # Element editor + public components
+│   ├── header/            # Header card components
+│   ├── tabs/              # Tab navigation components
+│   └── analytics/         # Analytics dashboard components
+├── lib/
+│   ├── types/             # TypeScript types (canvas, background, tabs, etc.)
+│   ├── cards/             # App card provider registry
+│   └── store.ts           # Zustand auth store
+└── prisma/                # Database schema
 ```
 
 ## Contributing
 
-We welcome contributions! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-### Quick Contribution Guide
+We welcome contributions!
 
 1. Fork the repo
 2. Create a feature branch (`git checkout -b feature/cool-thing`)
 3. Make your changes
-4. Run `pnpm lint` to check code style
-5. Commit with a descriptive message
-6. Open a pull request
+4. Commit with a descriptive message
+5. Open a pull request
 
 ## Roadmap
 
-- [ ] Drag-and-drop block reordering
 - [ ] Image upload (S3/Cloudflare R2)
 - [ ] Custom domains
-- [ ] Analytics dashboard
-- [ ] More block types (gallery, carousel, social links)
 - [ ] Template library
+- [ ] Dark mode toggle
+- [ ] Real-time collaboration
 
 ## License
 

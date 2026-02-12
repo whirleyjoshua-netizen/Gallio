@@ -24,3 +24,6 @@ export { PublicCardElement } from './PublicCardElement'
 // Social Elements
 export { CommentElement } from './CommentElement'
 export { PollElement } from './PollElement'
+// Kit Elements
+export { TrackerElement } from './TrackerElement'
+export { KitProfileElement } from './KitProfileElement'

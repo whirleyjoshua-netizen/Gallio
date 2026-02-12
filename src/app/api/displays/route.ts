@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 import { getUser } from '@/lib/auth'
 import { slugify } from '@/lib/utils'
+import { KIT_REGISTRY } from '@/lib/kits/registry'
+import { generateKitDisplay } from '@/lib/kits/generate'
+import '@/lib/kits/athlete-kit'
 
 // GET /api/displays - List user's displays
 export async function GET(request: NextRequest) {
@@ -62,7 +65,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { title, description } = await request.json()
+    const { title, description, kitId } = await request.json()
 
     if (!title) {
       return NextResponse.json(
@@ -86,13 +89,32 @@ export async function POST(request: NextRequest) {
       counter++
     }
 
+    // If kitId is provided, generate kit structure
+    let kitData: any = {}
+    if (kitId) {
+      const kit = KIT_REGISTRY[kitId]
+      if (!kit) {
+        return NextResponse.json({ error: 'Unknown kit' }, { status: 400 })
+      }
+      const generated = generateKitDisplay(kit, user.name || user.username)
+      kitData = {
+        sections: generated.sections,
+        tabs: generated.tabs,
+        headerCard: generated.headerCard,
+        kitConfig: generated.kitConfig,
+      }
+    }
+
     const display = await db.display.create({
       data: {
         title,
         slug,
         description,
         userId: user.id,
-        sections: [],
+        sections: kitData.sections || [],
+        ...(kitData.tabs && { tabs: kitData.tabs }),
+        ...(kitData.headerCard && { headerCard: kitData.headerCard }),
+        ...(kitData.kitConfig && { kitConfig: kitData.kitConfig }),
       },
     })
 

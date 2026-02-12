@@ -4,7 +4,7 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import { Plus, ExternalLink, Eye, MoreHorizontal, BarChart3, Compass, LogOut, Menu, Layout, Clock, Settings, Pin, PinOff, GripVertical, Layers } from 'lucide-react'
+import { Plus, ExternalLink, Eye, MoreHorizontal, BarChart3, Compass, LogOut, Menu, Layout, Clock, Settings, Pin, PinOff, GripVertical, Layers, Trophy } from 'lucide-react'
 import {
   DndContext,
   DragOverlay,
@@ -24,6 +24,7 @@ import {
 } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { useAuthStore } from '@/lib/store'
+import { KitSelector } from '@/components/kits/KitSelector'
 import { BackgroundSettings } from '@/components/canvas/BackgroundSettings'
 import { getBackgroundStyles, DEFAULT_BACKGROUND_CONFIG } from '@/lib/types/background'
 import type { BackgroundConfig } from '@/lib/types/background'
@@ -216,6 +217,7 @@ export default function DashboardPage() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [cardMenuOpen, setCardMenuOpen] = useState<string | null>(null)
   const [bgSettingsOpen, setBgSettingsOpen] = useState(false)
+  const [kitSelectorOpen, setKitSelectorOpen] = useState(false)
   const [dashboardPrefs, setDashboardPrefs] = useState<DashboardPrefs>({})
   const [activeCardId, setActiveCardId] = useState<string | null>(null)
 
@@ -436,6 +438,13 @@ export default function DashboardPage() {
                   Card Studio
                 </Link>
                 <button
+                  onClick={() => setKitSelectorOpen(true)}
+                  className="flex items-center gap-2 px-5 py-3 bg-gallio/10 text-gallio-dark border border-gallio/20 rounded-full font-medium hover:bg-gallio/20 hover:shadow-lg hover:shadow-gallio/15 hover:scale-[1.02] transition-all"
+                >
+                  <Trophy className="w-4 h-4 text-gallio" />
+                  New Kit Page
+                </button>
+                <button
                   onClick={createDisplay}
                   className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-full font-medium hover:shadow-lg hover:shadow-gallio/25 hover:scale-[1.02] transition-all"
                 >
@@ -557,6 +566,12 @@ export default function DashboardPage() {
         onClose={() => setBgSettingsOpen(false)}
         config={dashboardPrefs.background || DEFAULT_BACKGROUND_CONFIG}
         onChange={handleBgChange}
+      />
+
+      {/* Kit selector modal */}
+      <KitSelector
+        isOpen={kitSelectorOpen}
+        onClose={() => setKitSelectorOpen(false)}
       />
     </div>
   )

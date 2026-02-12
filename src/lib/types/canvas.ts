@@ -30,6 +30,9 @@ export type ElementType =
   | 'poll'      // Poll with voting
   // Tier 5: Integration cards (on hold)
   | 'card'      // App cards (LinkedIn, Vouch, custom)
+  // Kit elements
+  | 'tracker'      // Time-series tracker (speed, lifts, metrics, stats)
+  | 'kit-profile'  // Structured profile card for kit pages
 
 // Base element interface
 export interface CanvasElement {
@@ -131,6 +134,18 @@ export interface CanvasElement {
   pollOptions?: string[]
   pollAllowMultiple?: boolean
   pollShowResultsBeforeVote?: boolean
+  // Tracker specific
+  trackerKitId?: string           // Which kit this tracker belongs to
+  trackerConfigId?: string        // Maps to TrackerConfig.id (e.g. 'forty-yard')
+  trackerTitle?: string           // Display title override
+  trackerColor?: string           // Chart color override
+  trackerChartType?: 'line' | 'bar'
+  trackerShowSummary?: boolean    // Show summary cards above chart
+  trackerTimeRange?: '7d' | '30d' | '90d' | '1y' | 'all'
+  // Kit Profile specific
+  kitProfileKitId?: string
+  kitProfileData?: Record<string, any>
+  kitProfileLayout?: 'card' | 'full'
 }
 
 // Column settings for styling
@@ -331,6 +346,24 @@ export function createElement(type: ElementType): CanvasElement {
         pollOptions: ['Option 1', 'Option 2', 'Option 3'],
         pollAllowMultiple: false,
         pollShowResultsBeforeVote: false,
+      }
+    case 'tracker':
+      return {
+        ...base,
+        trackerKitId: '',
+        trackerConfigId: '',
+        trackerTitle: 'Tracker',
+        trackerColor: '#39D98A',
+        trackerChartType: 'line',
+        trackerShowSummary: true,
+        trackerTimeRange: 'all',
+      }
+    case 'kit-profile':
+      return {
+        ...base,
+        kitProfileKitId: '',
+        kitProfileData: {},
+        kitProfileLayout: 'card',
       }
     default:
       return base

@@ -20,6 +20,8 @@ import {
   Code2,
   CreditCard,
   ChevronDown as ChevronDownIcon,
+  TrendingUp,
+  UserCircle,
 } from 'lucide-react'
 import type { ElementType } from '@/lib/types/canvas'
 
@@ -64,9 +66,13 @@ const commands: Command[] = [
 
   // Integrations
   { id: 'card', label: 'App Card', icon: CreditCard, description: 'From your library', category: 'Integrations' },
+
+  // Kit
+  { id: 'tracker', label: 'Tracker', icon: TrendingUp, description: 'Track metrics over time', category: 'Kit' },
+  { id: 'kit-profile', label: 'Kit Profile', icon: UserCircle, description: 'Structured profile card', category: 'Kit' },
 ]
 
-const CATEGORY_ORDER = ['Content', 'Data & Visuals', 'Media', 'Forms', 'Social', 'Integrations']
+const CATEGORY_ORDER = ['Content', 'Data & Visuals', 'Media', 'Forms', 'Social', 'Integrations', 'Kit']
 
 interface SlashCommandMenuProps {
   position: { x: number; y: number }

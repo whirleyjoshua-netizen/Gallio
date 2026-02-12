@@ -9,6 +9,8 @@ import { PublicPollElement } from '@/components/elements/PublicPollElement'
 import { PublicMCQElement } from '@/components/elements/PublicMCQElement'
 import { PublicRatingElement } from '@/components/elements/PublicRatingElement'
 import { PublicShortAnswerElement } from '@/components/elements/PublicShortAnswerElement'
+import { PublicTrackerElement } from '@/components/elements/PublicTrackerElement'
+import { PublicKitProfileElement } from '@/components/elements/PublicKitProfileElement'
 
 export function getGridClass(layout: string): string {
   switch (layout) {
@@ -367,6 +369,12 @@ export function renderElement(element: CanvasElement, displayId?: string) {
 
     case 'poll':
       return <PublicPollElement element={element} displayId={displayId || ''} />
+
+    case 'tracker':
+      return <PublicTrackerElement element={element} displayId={displayId || ''} />
+
+    case 'kit-profile':
+      return <PublicKitProfileElement element={element} />
 
     default:
       return null

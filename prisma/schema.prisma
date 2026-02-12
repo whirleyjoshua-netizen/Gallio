@@ -61,6 +61,10 @@ model Display {
   // Share links
   shareLinks  ShareLink[]
 
+  // Kit configuration (identifies which kit + stores profile data)
+  kitConfig       Json?
+  trackerEntries  TrackerEntry[]
+
   @@unique([userId, slug])
   @@index([userId])
   @@index([published])
@@ -156,6 +160,34 @@ model ShareLink {
 
   @@index([displayId])
   @@index([code])
+}
+
+model TrackerEntry {
+  id          String   @id @default(cuid())
+  displayId   String
+  display     Display  @relation(fields: [displayId], references: [id], onDelete: Cascade)
+  trackerId   String   // Maps to CanvasElement.id of type 'tracker'
+  category    String   // 'sprint', 'lift', 'body-metric', 'game-stat'
+  value       Json     // Flexible: { time: 4.52 } or { exercise: 'bench', weight: 225, reps: 5, isPR: true }
+  recordedAt  DateTime // User-supplied date
+  note        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([displayId, trackerId])
+  @@index([displayId, trackerId, recordedAt])
+}
+
+model WaitlistEntry {
+  id           String   @id @default(cuid())
+  email        String
+  name         String?
+  organization String?
+  role         String?   // 'coach', 'athletic-director', 'school-admin', 'teacher', 'other'
+  message      String?
+  createdAt    DateTime @default(now())
+
+  @@index([email])
 }
 
 model CardLibraryItem {

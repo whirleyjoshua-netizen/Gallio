@@ -48,9 +48,13 @@ import {
   CodeElement,
   CommentElement,
   PollElement,
+  TrackerElement,
+  KitProfileElement,
 } from '@/components/elements'
 import { PublicCommentSection } from '@/components/elements/PublicCommentSection'
 import { PublicPollElement } from '@/components/elements/PublicPollElement'
+import { PublicTrackerElement } from '@/components/elements/PublicTrackerElement'
+import { PublicKitProfileElement } from '@/components/elements/PublicKitProfileElement'
 
 interface ColumnCanvasProps {
   sections: Section[]
@@ -597,6 +601,35 @@ export function ColumnCanvas({
         }
         return (
           <PollElement
+            element={element}
+            onChange={(updates) => onUpdateElement(sectionId, columnId, element.id, updates)}
+            onDelete={() => onDeleteElement(sectionId, columnId, element.id)}
+            isSelected={commonProps.isSelected}
+            onSelect={commonProps.onSelect}
+          />
+        )
+
+      case 'tracker':
+        if (isPreviewMode && displayId) {
+          return <PublicTrackerElement element={element} displayId={displayId} />
+        }
+        return (
+          <TrackerElement
+            element={element}
+            displayId={displayId || ''}
+            onChange={(updates) => onUpdateElement(sectionId, columnId, element.id, updates)}
+            onDelete={() => onDeleteElement(sectionId, columnId, element.id)}
+            isSelected={commonProps.isSelected}
+            onSelect={commonProps.onSelect}
+          />
+        )
+
+      case 'kit-profile':
+        if (isPreviewMode) {
+          return <PublicKitProfileElement element={element} />
+        }
+        return (
+          <KitProfileElement
             element={element}
             onChange={(updates) => onUpdateElement(sectionId, columnId, element.id, updates)}
             onDelete={() => onDeleteElement(sectionId, columnId, element.id)}

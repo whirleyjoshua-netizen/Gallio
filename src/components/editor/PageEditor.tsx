@@ -23,6 +23,8 @@ import type { HeaderCardConfig } from '@/lib/types/header-card'
 import { DEFAULT_HEADER_CARD } from '@/lib/types/header-card'
 import type { TabsConfig } from '@/lib/types/tabs'
 import { DEFAULT_TABS_CONFIG, createTab } from '@/lib/types/tabs'
+import type { KitPageConfig } from '@/lib/types/kit'
+import { KitBanner } from '@/components/kits/KitBanner'
 
 interface PageEditorProps {
   pageId?: string
@@ -42,6 +44,7 @@ export function PageEditor({ pageId }: PageEditorProps) {
   const [headerCard, setHeaderCard] = useState<HeaderCardConfig>(DEFAULT_HEADER_CARD)
   const [tabsConfig, setTabsConfig] = useState<TabsConfig>(DEFAULT_TABS_CONFIG)
   const [activeTabId, setActiveTabId] = useState<string | null>(null)
+  const [kitConfig, setKitConfig] = useState<KitPageConfig | null>(null)
 
   // UI state
   const [loading, setLoading] = useState(true)
@@ -169,6 +172,12 @@ export function PageEditor({ pageId }: PageEditorProps) {
         if (loadedTabs.enabled && loadedTabs.tabs.length > 0) {
           setActiveTabId(loadedTabs.tabs[0].id)
         }
+
+        // Parse kit config
+        const loadedKitConfig = data.kitConfig
+          ? (typeof data.kitConfig === 'string' ? JSON.parse(data.kitConfig) : data.kitConfig)
+          : null
+        setKitConfig(loadedKitConfig)
       } else {
         // Page not found, create new
         createNewPage()
@@ -400,6 +409,20 @@ export function PageEditor({ pageId }: PageEditorProps) {
         newElement.pollOptions = ['Option 1', 'Option 2', 'Option 3']
         newElement.pollAllowMultiple = false
         newElement.pollShowResultsBeforeVote = false
+        break
+      case 'tracker':
+        newElement.trackerKitId = ''
+        newElement.trackerConfigId = ''
+        newElement.trackerTitle = 'Tracker'
+        newElement.trackerColor = '#39D98A'
+        newElement.trackerChartType = 'line'
+        newElement.trackerShowSummary = true
+        newElement.trackerTimeRange = 'all'
+        break
+      case 'kit-profile':
+        newElement.kitProfileKitId = ''
+        newElement.kitProfileData = {}
+        newElement.kitProfileLayout = 'card'
         break
     }
 
@@ -667,6 +690,11 @@ export function PageEditor({ pageId }: PageEditorProps) {
             </button>
           </div>
         </header>
+      )}
+
+      {/* Kit Banner */}
+      {!isPreviewMode && kitConfig && (
+        <KitBanner kitId={kitConfig.kitId} />
       )}
 
       {/* Preview Mode Header */}

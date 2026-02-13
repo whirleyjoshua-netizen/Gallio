@@ -115,6 +115,48 @@ export function PageEditor({ pageId }: PageEditorProps) {
     }))
   }, [tabsConfig.enabled, tabsConfig.tabs, activeTabId])
 
+  // Active header card abstraction — per-tab when tabs enabled
+  const getActiveHeaderCard = useCallback((): HeaderCardConfig => {
+    if (!tabsConfig.enabled || tabsConfig.tabs.length === 0) return headerCard
+    const tab = tabsConfig.tabs.find(t => t.id === activeTabId) || tabsConfig.tabs[0]
+    return tab?.headerCard ?? headerCard
+  }, [tabsConfig, activeTabId, headerCard])
+
+  const setActiveHeaderCard = useCallback((config: HeaderCardConfig) => {
+    if (!tabsConfig.enabled || tabsConfig.tabs.length === 0) {
+      setHeaderCard(config)
+      return
+    }
+    const targetId = activeTabId || tabsConfig.tabs[0]?.id
+    setTabsConfig(prev => ({
+      ...prev,
+      tabs: prev.tabs.map(tab =>
+        tab.id === targetId ? { ...tab, headerCard: config } : tab
+      ),
+    }))
+  }, [tabsConfig.enabled, tabsConfig.tabs, activeTabId])
+
+  // Active background abstraction — per-tab when tabs enabled
+  const getActiveBackground = useCallback((): BackgroundConfig => {
+    if (!tabsConfig.enabled || tabsConfig.tabs.length === 0) return background
+    const tab = tabsConfig.tabs.find(t => t.id === activeTabId) || tabsConfig.tabs[0]
+    return tab?.background ?? background
+  }, [tabsConfig, activeTabId, background])
+
+  const setActiveBackground = useCallback((config: BackgroundConfig) => {
+    if (!tabsConfig.enabled || tabsConfig.tabs.length === 0) {
+      setBackground(config)
+      return
+    }
+    const targetId = activeTabId || tabsConfig.tabs[0]?.id
+    setTabsConfig(prev => ({
+      ...prev,
+      tabs: prev.tabs.map(tab =>
+        tab.id === targetId ? { ...tab, background: config } : tab
+      ),
+    }))
+  }, [tabsConfig.enabled, tabsConfig.tabs, activeTabId])
+
   // Auto-save every 5 seconds
   useEffect(() => {
     if (!id) return
@@ -581,7 +623,9 @@ export function PageEditor({ pageId }: PageEditorProps) {
     )
   }
 
-  const backgroundStyles = getBackgroundStyles(background)
+  const activeHeaderCardConfig = getActiveHeaderCard()
+  const activeBackgroundConfig = getActiveBackground()
+  const backgroundStyles = getBackgroundStyles(activeBackgroundConfig)
 
   return (
     <div className="h-screen flex flex-col bg-background">
@@ -712,20 +756,10 @@ export function PageEditor({ pageId }: PageEditorProps) {
       )}
 
       {/* Canvas */}
-      <div className="flex-1 overflow-auto" style={backgroundStyles}>
-        {/* Header Card Preview */}
-        {headerCard.enabled && (
-          <div
-            className={`${!isPreviewMode ? 'cursor-pointer ring-transparent hover:ring-2 hover:ring-primary/30 transition-all' : ''}`}
-            onClick={() => !isPreviewMode && setShowHeaderEditor(true)}
-          >
-            <HeaderCard config={headerCard} />
-          </div>
-        )}
-
-        {/* Tab Bar */}
+      <div className="flex-1 overflow-auto flex flex-col">
+        {/* Tab Bar — at the very top, above everything */}
         {tabsConfig.enabled && tabsConfig.tabs.length > 0 && (
-          <div className="bg-background/80 backdrop-blur-sm sticky top-0 z-10 px-4">
+          <div className="bg-background/90 backdrop-blur-sm sticky top-0 z-10 border-b border-border px-4 flex-shrink-0">
             <div className="max-w-6xl mx-auto">
               <TabBar
                 tabs={tabsConfig.tabs}
@@ -771,18 +805,31 @@ export function PageEditor({ pageId }: PageEditorProps) {
           </div>
         )}
 
-        <ColumnCanvas
-          sections={getActiveSections()}
-          onSectionsChange={setActiveSections}
-          onAddSection={addSection}
-          onDeleteSection={deleteSection}
-          onOpenSlashMenu={openSlashMenu}
-          onUpdateElement={updateElement}
-          onDeleteElement={deleteElement}
-          onOpenColumnSettings={openColumnSettings}
-          isPreviewMode={isPreviewMode}
-          displayId={id || undefined}
-        />
+        {/* Per-tab (or global) background + header + content */}
+        <div className="flex-1" style={backgroundStyles}>
+          {/* Header Card Preview */}
+          {activeHeaderCardConfig.enabled && (
+            <div
+              className={`${!isPreviewMode ? 'cursor-pointer ring-transparent hover:ring-2 hover:ring-primary/30 transition-all' : ''}`}
+              onClick={() => !isPreviewMode && setShowHeaderEditor(true)}
+            >
+              <HeaderCard config={activeHeaderCardConfig} />
+            </div>
+          )}
+
+          <ColumnCanvas
+            sections={getActiveSections()}
+            onSectionsChange={setActiveSections}
+            onAddSection={addSection}
+            onDeleteSection={deleteSection}
+            onOpenSlashMenu={openSlashMenu}
+            onUpdateElement={updateElement}
+            onDeleteElement={deleteElement}
+            onOpenColumnSettings={openColumnSettings}
+            isPreviewMode={isPreviewMode}
+            displayId={id || undefined}
+          />
+        </div>
       </div>
 
       {/* Slash Menu */}
@@ -798,8 +845,8 @@ export function PageEditor({ pageId }: PageEditorProps) {
       <BackgroundSettings
         isOpen={showBackgroundSettings}
         onClose={() => setShowBackgroundSettings(false)}
-        config={background}
-        onChange={setBackground}
+        config={activeBackgroundConfig}
+        onChange={setActiveBackground}
       />
 
       {/* Share Dialog */}
@@ -829,8 +876,8 @@ export function PageEditor({ pageId }: PageEditorProps) {
       <HeaderCardEditor
         isOpen={showHeaderEditor}
         onClose={() => setShowHeaderEditor(false)}
-        config={headerCard}
-        onChange={setHeaderCard}
+        config={activeHeaderCardConfig}
+        onChange={setActiveHeaderCard}
       />
 
       {/* Card Library Picker */}

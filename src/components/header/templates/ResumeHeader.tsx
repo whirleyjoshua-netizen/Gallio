@@ -28,7 +28,7 @@ export function ResumeHeader({ config }: ResumeHeaderProps) {
   const overlayOpacity = Math.max((config.overlayOpacity || 0) / 100, 0.25)
 
   return (
-    <div className="relative w-full" style={{ marginBottom: '36px' }}>
+    <div className="relative w-full">
       {/* Cover image area */}
       <div className="relative w-full" style={{ height: coverH }}>
         <div className="absolute inset-0 overflow-hidden bg-gradient-to-r from-slate-800 to-slate-900">

@@ -1,12 +1,16 @@
-// Tab Navigation Types — pages within a page
+// Tab Navigation Types — each tab is a fully independent page
 
 import type { Section } from './canvas'
+import type { HeaderCardConfig } from './header-card'
+import type { BackgroundConfig } from './background'
 
 export interface Tab {
   id: string
   label: string
   slug: string             // URL-friendly identifier
   sections: Section[]      // Full canvas content for this tab
+  headerCard?: HeaderCardConfig  // Per-tab header (optional, falls back to display-level)
+  background?: BackgroundConfig  // Per-tab background (optional, falls back to display-level)
 }
 
 export interface TabsConfig {

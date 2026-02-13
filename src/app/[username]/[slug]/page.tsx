@@ -64,9 +64,25 @@ export default async function PublicDisplayPage({ params }: Props) {
 
   const backgroundStyles = getBackgroundStyles(background)
 
+  // When tabs are enabled, PublicTabView is the entire page
+  if (tabsConfig?.enabled && tabsConfig.tabs.length > 0) {
+    return (
+      <>
+        <PageViewTracker displayId={display.id} />
+        <PublicTabView
+          tabs={tabsConfig.tabs}
+          style={tabsConfig.style}
+          alignment={tabsConfig.alignment}
+          displayId={display.id}
+          defaultHeaderCard={headerCard}
+          defaultBackground={background}
+        />
+      </>
+    )
+  }
+
   return (
     <div className="min-h-screen" style={backgroundStyles}>
-      {/* Client-side analytics tracking */}
       <PageViewTracker displayId={display.id} />
 
       {/* Header Card */}
@@ -89,47 +105,35 @@ export default async function PublicDisplayPage({ params }: Props) {
             </header>
           )}
 
-          {/* Tabs or single-page content */}
-          {tabsConfig?.enabled && tabsConfig.tabs.length > 0 ? (
-            <PublicTabView
-              tabs={tabsConfig.tabs}
-              style={tabsConfig.style}
-              alignment={tabsConfig.alignment}
-              displayId={display.id}
-            />
-          ) : (
-            <>
-              {/* Sections */}
-              <div className="space-y-8">
-                {sections.map((section) => (
+          {/* Sections */}
+          <div className="space-y-8">
+            {sections.map((section) => (
+              <div
+                key={section.id}
+                className={`grid gap-6 ${getGridClass(section.layout)}`}
+              >
+                {section.columns.map((column) => (
                   <div
-                    key={section.id}
-                    className={`grid gap-6 ${getGridClass(section.layout)}`}
+                    key={column.id}
+                    className="space-y-4"
+                    style={getColumnStyles(column)}
                   >
-                    {section.columns.map((column) => (
-                      <div
-                        key={column.id}
-                        className="space-y-4"
-                        style={getColumnStyles(column)}
-                      >
-                        {column.elements.map((element) => (
-                          <div key={element.id}>
-                            {renderElement(element, display.id)}
-                          </div>
-                        ))}
+                    {column.elements.map((element) => (
+                      <div key={element.id}>
+                        {renderElement(element, display.id)}
                       </div>
                     ))}
                   </div>
                 ))}
               </div>
+            ))}
+          </div>
 
-              {/* Empty State */}
-              {sections.length === 0 && (
-                <div className="text-center py-20 opacity-50">
-                  <p>This page is empty</p>
-                </div>
-              )}
-            </>
+          {/* Empty State */}
+          {sections.length === 0 && (
+            <div className="text-center py-20 opacity-50">
+              <p>This page is empty</p>
+            </div>
           )}
 
           {/* Footer */}

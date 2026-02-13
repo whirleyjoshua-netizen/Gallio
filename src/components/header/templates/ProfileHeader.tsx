@@ -28,7 +28,7 @@ export function ProfileHeader({ config }: ProfileHeaderProps) {
   const overlayOpacity = Math.max((config.overlayOpacity || 0) / 100, 0.25)
 
   return (
-    <div className="relative w-full" style={{ marginBottom: '48px' }}>
+    <div className="relative w-full">
       {/* Cover image area */}
       <div className="relative w-full" style={{ height: coverH }}>
         <div className="absolute inset-0 overflow-hidden bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700">
